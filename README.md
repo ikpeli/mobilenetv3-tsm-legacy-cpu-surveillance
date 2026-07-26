@@ -12,8 +12,10 @@ This repository contains the reproducibility files for the MobileNetV3-Large + T
 - `generate_manifests.py` — recreates the 500-video dataset manifest and the deterministic train/validation/test splits.
 - `train_manifest.csv`
 - `validation_manifest.csv`
+- `core.py`
+- `train.py`
+- `EXTRACT_NOTES.md`
 - `test_manifest.csv`
-
 ## Important note about the three manifest CSV files
 
 The uploaded notebook contains the code and random seed used to generate the splits, but it does **not embed the complete 500 file paths** in its saved cell outputs. Therefore, the three CSV files included here are schema-ready placeholders.
