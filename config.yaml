@@ -1,0 +1,61 @@
+project:
+  name: legacy_cpu_suspicious_activity_detection
+  seed: 42
+  output_dir: /kaggle/working/checkpoints_expanded_normal_mnv3_large_confirmed
+
+data:
+  current_root: /kaggle/input/datasets/alirakhmaev/ucf-crime-full
+  full_videos_root: /kaggle/input/datasets/vigneshwar472/ucaucf-crime-annotation-dataset/UCF_Crimes/UCF_Crimes/Videos
+  manifest_csv: /kaggle/working/expanded_normal_manifest.csv
+  suspicious_classes:
+    - Burglary
+    - Fighting
+    - Stealing
+  normal_current_folder: Normal_Videos_for_Event_Recognition
+  normal_expansion_folder: Training_Normal_Videos_Anomaly
+  target_normal_total: 250
+  video_extensions:
+    - .mp4
+    - .avi
+    - .mov
+    - .mkv
+
+split:
+  train_fraction: 0.70
+  validation_fraction: 0.15
+  test_fraction: 0.15
+  stratify_by: class_name
+  split_unit: video
+  random_seed: 42
+
+input:
+  image_size: 160
+  num_frames: 8
+  inference_frame_stride: 4
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+
+training:
+  batch_size: 16
+  train_samples_per_video: 2
+  epochs: 50
+  learning_rate: 0.0001
+  weight_decay: 0.0001
+  early_stop_patience: 8
+  num_workers: 4
+  optimizer: AdamW
+  scheduler: ReduceLROnPlateau
+  mixed_precision: true
+  focal_loss:
+    alpha: 0.75
+    gamma: 2.5
+  hard_negative_top_fraction: 0.15
+  motion_scoring: MOG2
+  run_3fold_cv: true
+  cv_epochs_per_fold: 5
+
+checkpointing:
+  latest: latest.pt
+  best_pr_auc: best_prauc.pt
+  best_roc_auc: best_rocauc.pt
+  motion_cache: /kaggle/working/motion_cache.json

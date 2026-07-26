@@ -1,0 +1,29 @@
+model:
+  name: MobileNetV3-Large_TSM
+  task: binary_video_classification
+  positive_class: suspicious
+  negative_class: normal
+  backbone:
+    architecture: torchvision.models.mobilenet_v3_large
+    pretrained_weights: IMAGENET1K_V1
+    fallback_if_unavailable: random_initialization
+  temporal_shift:
+    enabled: true
+    shift_division: 8
+    insertion_frequency: every_inverted_residual_block
+    stem_shifted: false
+    padding: zero_fill
+  temporal_aggregation: mean_pooling_across_8_frames
+  spatial_pooling: adaptive_average_pooling_2d
+  classifier:
+    input_features: 960
+    dropout: 0.30
+    output_features: 1
+    output: raw_binary_logit
+  input_shape:
+    batch: dynamic
+    frames: 8
+    channels: 3
+    height: 160
+    width: 160
+  reported_trainable_parameters: 2972913

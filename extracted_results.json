@@ -1,0 +1,26 @@
+{
+  "model": "MobileNetV3-Large + TSM",
+  "num_frames": 8,
+  "image_size": 160,
+  "train_samples_per_video": 2,
+  "best_validation_clip_pr_auc": 0.8459807917601359,
+  "best_validation_clip_roc_auc": 0.8634423897581792,
+  "selected_clip_threshold": 0.490234375,
+  "test_clip_pr_auc": 0.9380221611900564,
+  "test_clip_roc_auc": 0.922475106685633,
+  "test_video_pr_auc_max": 0.8963015816859329,
+  "test_video_roc_auc_max": 0.9018492176386913,
+  "event_recall": 0.8157894736842105,
+  "event_precision": 0.8857142857142857,
+  "event_f1": 0.8493150684931505,
+  "false_alarm_rate": 0.10810810810810811,
+  "alert_params": {
+    "alpha": 0.3,
+    "threshold": 0.6,
+    "N": 3
+  },
+  "cv_3fold_pr_auc_mean": 0.8704583670250011,
+  "cv_3fold_pr_auc_std": 0.01318854044053225,
+  "openvino_fp32_avg_latency_ms": 38.0,
+  "openvino_speedup_vs_pytorch": 1.59
+}

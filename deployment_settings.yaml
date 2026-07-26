@@ -1,0 +1,53 @@
+deployment:
+  target:
+    computer: Dell OptiPlex 9020
+    processor: Intel Core i5-4570
+    cpu_cores: 4
+    system_memory_gb: 8
+    gpu_used_for_inference: false
+    operating_system: Windows
+  video:
+    source_protocol: RTSP
+    source_frame_rate_fps: 30
+    frames_per_window: 8
+    source_frame_sampling_stride: 4
+    source_frames_spanned_per_window: 32
+    window_span_seconds_at_30fps: 1.0667
+    windows_overlap: false
+    model_input_size: [160, 160]
+  runtime:
+    training_framework: PyTorch
+    exchange_format: ONNX
+    onnx_opset: 12
+    inference_engine: OpenVINO
+    precision: FP32
+    openvino_execution_device: CPU
+    execution_hint: latency
+    use_all_cpu_cores: true
+  alert_logic:
+    smoothing: exponential_moving_average
+    ema_alpha: 0.30
+    probability_threshold: 0.60
+    consecutive_windows_required: 3
+    cooldown_clips: 0
+    selection_split: validation
+    selection_rule: maximise event F1, then recall, then minimise false-alarm rate
+  dispatch:
+    channels:
+      - Telegram
+      - email
+    asynchronous: true
+    bounded_queue: true
+    retry_logic: true
+    evaluated_dispatch_trigger: end_of_recorded_segment
+  notebook_benchmarks:
+    pytorch_cpu_average_latency_ms: 60.6241
+    pytorch_cpu_p95_latency_ms: 62.8618
+    pytorch_cpu_effective_clips_per_second: 16.4951
+    openvino_fp32_average_latency_ms: 38.0
+    openvino_fp32_clips_per_second: 26.3
+    openvino_speedup_over_pytorch: 1.59
+    int8_validation_pr_auc: 0.8258
+    fp32_validation_pr_auc: 0.8460
+    int8_relative_pr_auc_drop_percent: 2.39
+    int8_accepted: false

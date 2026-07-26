@@ -1,0 +1,13 @@
+numpy
+pandas
+opencv-python-headless
+torch==2.10.0
+torchvision
+scikit-learn
+matplotlib
+tqdm
+psutil
+onnx
+openvino==2026.2.1
+nncf
+PyYAML
