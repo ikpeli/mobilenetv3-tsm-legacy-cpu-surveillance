@@ -16,6 +16,8 @@ This repository contains the reproducibility files for the MobileNetV3-Large + T
 - `train.py`
 - `EXTRACT_NOTES.md`
 - `test_manifest.csv`
+- `README_ADDITIONS.md`
+- `CITATION-1.cff`
 ## Important note about the three manifest CSV files
 
 The uploaded notebook contains the code and random seed used to generate the splits, but it does **not embed the complete 500 file paths** in its saved cell outputs. Therefore, the three CSV files included here are schema-ready placeholders.
