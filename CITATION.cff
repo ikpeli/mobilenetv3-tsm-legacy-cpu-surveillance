@@ -22,7 +22,7 @@ abstract: >-
   manifest-generation script. UCF-Crime video files are not redistributed.
 type: software
 license: Apache-2.0
-repository-code: "https://github.com/ikpeli/mobilenetv3-tsm-legacy-cpu-surveillance-"
+repository-code: "https://github.com/ikpeli/mobilenetv3-tsm-legacy-cpu-surveillance"
 doi: 10.5281/zenodo.21610681          # all-versions DOI; resolves to the latest release
 version: 1.0.2
 date-released: 2026-07-26
