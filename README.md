@@ -61,9 +61,11 @@ which holds every window the deployed service would score.
 
 ### Model and configuration
 
-`model.onnx` is the exported graph and `openvino_ir/` the FP32 intermediate representation
-actually run on the deployment machine. Both are sufficient to reproduce the inference,
-latency, and detection results reported in the paper.
+`model.onnx` is the exported graph. `model.xml` and `model.bin` are the FP32 OpenVINO
+intermediate representation actually run on the deployment machine, and together they are
+sufficient to reproduce the inference, latency, and detection results reported in the paper.
+`model_int8.xml` and `model_int8.bin` are the INT8 variant evaluated in Section III-F and
+rejected, included so that the reported accuracy cost can be checked.
 
 The PyTorch training checkpoint (`best_prauc.pt`, epoch 13, validation PR-AUC 0.846) is not
 included here because of file-size limits. It is needed only to resume or fine-tune training,
