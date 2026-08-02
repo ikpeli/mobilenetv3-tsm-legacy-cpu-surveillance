@@ -1,0 +1,120 @@
+{
+  "model": "MobileNetV3-Large + TSM",
+  "num_frames": 8,
+  "img_size": 160,
+  "train_samples_per_video": 2,
+  "selected_threshold_clip_f1": 0.490234375,
+  "val_video_level_metrics": {
+    "max": {
+      "pr_auc": 0.8603596462363055,
+      "score_col": "score_max",
+      "n_videos": 75,
+      "roc_auc": 0.8438833570412518
+    },
+    "top3_mean": {
+      "pr_auc": 0.8667085355631878,
+      "score_col": "score_topk_mean",
+      "n_videos": 75,
+      "roc_auc": 0.8541963015647227
+    }
+  },
+  "test_video_level_metrics": {
+    "max": {
+      "pr_auc": 0.8963015816859329,
+      "score_col": "score_max",
+      "n_videos": 75,
+      "roc_auc": 0.9018492176386913
+    },
+    "top3_mean": {
+      "pr_auc": 0.8992551624326864,
+      "score_col": "score_topk_mean",
+      "n_videos": 75,
+      "roc_auc": 0.906827880512091
+    }
+  },
+  "event_level_metrics_test": {
+    "event_recall": 0.8157894736842105,
+    "event_precision": 0.8857142857142857,
+    "event_f1": 0.8493150684931505,
+    "false_alarm_rate": 0.10810810810810811,
+    "tp": 31,
+    "fn": 7,
+    "fp": 4,
+    "tn": 33,
+    "alpha": 0.3,
+    "threshold": 0.6,
+    "N": 3
+  },
+  "alert_logic_params": {
+    "alpha": 0.3,
+    "threshold": 0.6,
+    "N": 3,
+    "cooldown_clips": 0,
+    "selection_split": "validation",
+    "selection_rule": "max val event_f1, then max recall, then min false_alarm_rate"
+  },
+  "alert_logic_tuning_note": "alpha/threshold/N are selected on validation sliding-window predictions and then applied once to the held-out test sliding-window predictions. This avoids test-set alert tuning leakage.",
+  "deployment_benchmark_cpu": {
+    "avg_latency_ms": 60.6241360667506,
+    "p95_latency_ms": 62.861764699209736,
+    "fps": 16.49508042306687,
+    "ram_delta_mb": 0.0
+  },
+  "tsm_ablation": [
+    {
+      "setting": "No TSM",
+      "avg_latency_ms": 53.1160641002316,
+      "std_ms": 1.0424329954721676,
+      "fps": 18.826696159432487
+    },
+    {
+      "setting": "Every block",
+      "avg_latency_ms": 58.882122300019546,
+      "std_ms": 1.2445228677607925,
+      "fps": 16.983083505461014
+    },
+    {
+      "setting": "Every 2 blocks",
+      "avg_latency_ms": 58.04321979985616,
+      "std_ms": 3.0169024916288336,
+      "fps": 17.228541136211714
+    },
+    {
+      "setting": "Every 3 blocks",
+      "avg_latency_ms": 56.4275825502591,
+      "std_ms": 1.2950116086754746,
+      "fps": 17.721829552228588
+    }
+  ],
+  "cv_3fold": {
+    "pr_auc_mean": 0.8704583670250011,
+    "pr_auc_std": 0.01318854044053225,
+    "per_fold": [
+      0.8771970613777246,
+      0.8821505236660796,
+      0.8520275160311994
+    ]
+  },
+  "test_metrics_single_clip_per_video": {
+    "pr_auc": 0.9380221611900564,
+    "roc_auc": 0.922475106685633,
+    "f1": 0.88,
+    "recall": 0.868421052631579,
+    "precision": 0.8918918918918919,
+    "mse": 0.11351216858873765,
+    "rmse": 0.3369156698474229
+  },
+  "test_metrics_single_clip_per_video_tuned_threshold": {
+    "pr_auc": 0.9380221611900564,
+    "roc_auc": 0.922475106685633,
+    "f1": 0.868421052631579,
+    "recall": 0.868421052631579,
+    "precision": 0.868421052631579,
+    "mse": 0.11351216858873765,
+    "rmse": 0.3369156698474229
+  },
+  "best_val_pr_auc_single_clip_per_video": 0.8459807917601359,
+  "best_val_roc_auc_single_clip_per_video": 0.8634423897581792,
+  "calibration_ece_single_clip_per_video": 0.140570068359375,
+  "_naming_note": "Metrics labelled single_clip_per_video are computed over ONE uniformly sampled clip per video (75 clips on each partition), matching the evaluation DataLoader. They are NOT computed over the full sliding-window sequence; for that see test_clip_probs.csv (7,425 windows) and verify_paper_numbers.py."
+}

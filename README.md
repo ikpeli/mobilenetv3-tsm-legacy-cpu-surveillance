@@ -1,81 +1,100 @@
 # Real-Time Suspicious-Activity Detection on Legacy CPU Hardware
 
-This repository contains the reproducibility files for the MobileNetV3-Large + Temporal Shift Module (TSM) suspicious-activity detection study.
+Code, manifests, and results for the paper *Real-Time Suspicious-Activity Detection on Legacy
+CPU Hardware Using MobileNetV3-Large with Temporal Shift Modeling*.
 
-## Repository contents
+A MobileNetV3-Large backbone with a Temporal Shift Module, trained on a 500-video binary
+subset of UCF-Crime and deployed on an Intel Core i5-4570 desktop with no GPU, reading an
+RTSP sub-stream from an eight-channel NVR and dispatching alerts over Telegram and e-mail.
 
-- `actionrec.ipynb` — training, validation, testing, calibration, export and benchmarking notebook.
-- `config.yaml` — dataset, split, training and evaluation configuration extracted from the notebook.
-- `model_configuration.yaml` — architecture details for MobileNetV3-Large + TSM.
-- `deployment_settings.yaml` — OpenVINO and alert-pipeline settings.
-- `requirements.txt` — Python package requirements.
-- `generate_manifests.py` — recreates the 500-video dataset manifest and the deterministic train/validation/test splits.
-- `train_manifest.csv`
-- `validation_manifest.csv`
-- `core.py`
-- `train.py`
-- `EXTRACT_NOTES.md`
-- `test_manifest.csv`
-- `README_ADDITIONS.md`
-- `CITATION-1.cff`
-## Important note about the three manifest CSV files
+## Verifying the reported numbers
 
-The uploaded notebook contains the code and random seed used to generate the splits, but it does **not embed the complete 500 file paths** in its saved cell outputs. Therefore, the three CSV files included here are schema-ready placeholders.
-
-Run `generate_manifests.py` in the same Kaggle environment where the two UCF-Crime datasets are mounted. It will create the exact manifests using:
-
-- all 100 Burglary videos;
-- all 50 Fighting videos;
-- all 100 Stealing videos;
-- all 50 videos from `Normal_Videos_for_Event_Recognition`;
-- 200 additional normal videos selected with seed 42 from `Training_Normal_Videos_Anomaly`;
-- a 70:15:15 class-stratified, video-level split with seed 42.
-
-## Expected split sizes
-
-| Split | Total | Normal | Burglary | Fighting | Stealing |
-|---|---:|---:|---:|---:|---:|
-| Train | 350 | 175 | 70 | 35 | 70 |
-| Validation | 75 | 38 | 15 | 7 | 15 |
-| Test | 75 | 37 | 15 | 8 | 15 |
-
-## Model summary
-
-- Backbone: MobileNetV3-Large
-- Temporal module: TSM before every inverted-residual block
-- Frames per clip: 8
-- Input size: 160 × 160
-- Shift division: 8
-- Dropout: 0.30
-- Binary output: Normal vs Suspicious
-- Trainable parameters reported by the manuscript: 2,972,913
-
-## Main reported results
-
-- Three-fold cross-validation PR-AUC: 0.870 ± 0.013
-- Held-out video-level PR-AUC: 0.896
-- Held-out video-level ROC-AUC: 0.902
-- Event recall: 81.6%
-- Event precision: 88.6%
-- Event F1: 84.9%
-- False-alarm rate: 10.8%
-- OpenVINO FP32 latency in notebook benchmark: 38.0 ms per clip
-- OpenVINO speed-up over PyTorch CPU: 1.59×
-
-## Recreate the manifests on Kaggle
-
-1. Attach these datasets:
-   - `alirakhmaev/ucf-crime-full`
-   - `vigneshwar472/ucaucf-crime-annotation-dataset`
-2. Upload or clone this repository.
-3. Run:
+Every detection, event-level, calibration, and operating-point figure in Section IV is
+recomputed from the exported per-window probabilities by:
 
 ```bash
-python generate_manifests.py
+pip install pandas numpy scikit-learn
+python verify_paper_numbers.py --results .
 ```
 
-The script overwrites the three placeholder CSV files with the exact paths available in that Kaggle session.
+It prints PASS or FAIL for each check against the value printed in the paper and exits
+non-zero if any check fails. `verify_numbers_colab.ipynb` is the same thing packaged for
+Google Colab, with the script embedded so nothing needs installing.
 
-## Data licence and redistribution
+## Contents
 
-This repository should not redistribute UCF-Crime video files. It may publish only filenames, split manifests, configuration, code and derived model artefacts subject to the dataset and institutional policies.
+### Manifests
+
+| File | Contents |
+|---|---|
+| `full_manifest_500.csv` | All 500 videos with class, binary label, and assigned partition |
+| `train_manifest.csv` | 350 videos: 175 Normal, 70 Burglary, 70 Stealing, 35 Fighting |
+| `validation_manifest.csv` | 75 videos: 38 Normal, 15 Burglary, 15 Stealing, 7 Fighting |
+| `test_manifest.csv` | 75 videos: 37 Normal, 15 Burglary, 15 Stealing, 8 Fighting |
+| `SHA256SUMS.txt` | Checksums for the four manifests |
+| `expanded_normal_manifest.csv` | The manifest as emitted by the notebook, before the split column was added |
+
+Partitioning is at the video level, not the clip level, so no source video contributes
+clips to more than one partition. No file from the UCF-Crime testing-normal directory
+enters any manifest.
+
+### Results
+
+| File | Contents |
+|---|---|
+| `test_clip_probs.csv` | 7,425 per-window probabilities, test partition |
+| `val_clip_probs.csv` | 8,561 per-window probabilities, validation partition |
+| `test_video_level_scores.csv`, `val_video_level_scores.csv` | Per-video aggregated scores |
+| `event_predictions.csv` | Event-level outcomes at the deployed operating point, test |
+| `event_predictions_val_validation_tuned.csv` | The same on validation |
+| `alert_sweep_validation.csv` | Operating-point sweep over smoothing factor, threshold, and confirmation count |
+| `calibration_metrics.json` | Bin-wise calibration statistics |
+| `final_summary.json` | Metrics emitted by the notebook |
+| `deployment_benchmark.json`, `openvino_benchmark.json` | Latency and throughput on the target and development CPUs |
+| `history.json` | Per-epoch training history |
+| `motion_cache.json` | Cached background-subtraction motion scores used for hard-negative sampling |
+
+**Note on metric naming.** Keys containing `single_clip_per_video` cover one uniformly
+sampled clip per video, 75 clips per partition, matching the evaluation DataLoader. They are
+*not* computed over the full sliding-window sequence. For that, use `test_clip_probs.csv`,
+which holds every window the deployed service would score.
+
+### Model and configuration
+
+`model.onnx` is the exported graph and `openvino_ir/` the FP32 intermediate representation
+actually run on the deployment machine. Both are sufficient to reproduce the inference,
+latency, and detection results reported in the paper.
+
+The PyTorch training checkpoint (`best_prauc.pt`, epoch 13, validation PR-AUC 0.846) is not
+included here because of file-size limits. It is needed only to resume or fine-tune training,
+not to reproduce any reported result, and is available on request from the corresponding
+author. `config.yaml`, `model_configuration.yaml`, and
+`deployment_settings.yaml` carry the training, model, and pipeline settings.
+`requirements.txt` pins the environment.
+
+### Figures
+
+`fig1_block_diagram.pdf` through `fig5_reliability.pdf` are the manuscript figures as vector
+PDFs. `evaluation_plots.png`, `calibration_diagram.png`, and
+`validation_fighting_recall_tradeoff.png` are the notebook's own diagnostic plots.
+
+## Dataset
+
+The UCF-Crime video files are **not** redistributed here. Obtain them from the original
+authors under their licensing terms. The manifests reference paths of the form
+`/kaggle/input/datasets/...`; adjust the roots to your own dataset location before running
+the notebook.
+
+## Reproducing training
+
+`actionrec.ipynb` runs end to end on a GPU-enabled Kaggle session with both UCF-Crime
+sources attached. Training on the deployment CPU was attempted and abandoned as impractically
+slow; that machine is the inference target only.
+
+## Citation
+
+Cite the paper. The Zenodo all-versions DOI resolves to the latest release.
+
+## License
+
+Apache License 2.0. The dataset is governed separately by its original authors' terms.
